@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTerminal } from '../context/TerminalState';
 import { ChartContainer } from '../components/ChartContainer';
-
 // Backend response structure ke liye TypeScript interfaces
 interface LiveSignal {
   symbol: string;
@@ -67,7 +66,8 @@ export const StandardLayout: React.FC = () => {
   useEffect(() => {
     const fetchLiveSignals = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/signals');
+        const API_URL = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${API_URL}/api/signals`); //http://localhost:5000/api/signals
         if (response.ok) {
           const data: BackendSignals = await response.json();
           setLiveSignals(data);
