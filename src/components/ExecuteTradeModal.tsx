@@ -48,23 +48,28 @@ export const ExecuteTradeModal: React.FC = () => {
   const isPEPE = selectedCoin === 'PEPE';
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-md">
-      <div className="glass-panel w-full max-w-md p-lg rounded-xl flex flex-col relative overflow-hidden transition-all duration-300">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-md">
+      <div className="glass-panel w-full sm:max-w-md p-sm sm:p-lg rounded-t-2xl sm:rounded-xl flex flex-col relative overflow-hidden transition-all duration-300 max-h-[90vh] overflow-y-auto">
         
         {/* Decorative corner glow for Flux */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none opacity-50 FluxOnly" />
 
+        {/* Drag Handle (mobile) */}
+        <div className="sm:hidden flex justify-center mb-sm pt-1">
+          <div className="w-10 h-1 bg-outline-variant rounded-full"></div>
+        </div>
+
         {/* Modal Header */}
-        <div className="flex justify-between items-center mb-lg border-b border-outline-variant pb-sm">
-          <div className="flex items-center gap-sm">
-            <span className="material-symbols-outlined text-primary text-xl">show_chart</span>
-            <h3 className="font-display-lg text-headline-sm uppercase tracking-tight">
-              New Position: {selectedCoin}/USDT
+        <div className="flex justify-between items-center mb-md lg:mb-lg border-b border-outline-variant pb-sm">
+          <div className="flex items-center gap-sm min-w-0">
+            <span className="material-symbols-outlined text-primary text-xl flex-shrink-0">show_chart</span>
+            <h3 className="font-display-lg text-sm lg:text-headline-sm uppercase tracking-tight truncate">
+              {selectedCoin}/USDT
             </h3>
           </div>
           <button 
             onClick={() => setShowTradeModal(false)}
-            className="p-1 hover:text-primary transition-colors hover:bg-surface-variant/30 rounded-full"
+            className="p-1 hover:text-primary transition-colors hover:bg-surface-variant/30 rounded-full flex-shrink-0"
           >
             <span className="material-symbols-outlined">close</span>
           </button>

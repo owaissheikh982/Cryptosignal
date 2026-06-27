@@ -29,6 +29,9 @@ export const FluidFluxLayout: React.FC = () => {
     setShowTradeModal,
   } = useTerminal();
 
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   // --- LIVE MARKET INTELLIGENCE STATE ---
   const [liveSignals, setLiveSignals] = useState<BackendSignals>({
     buySignal: { symbol: 'SOL', confidence: 94, reason: 'RSI OVERSOLD', type: 'LONG' },
@@ -68,8 +71,18 @@ export const FluidFluxLayout: React.FC = () => {
   return (
     <div className="relative min-h-screen deep-forest-gradient">
 
-      {/* SideNavBar Shell */}
-      <aside className="fixed left-6 top-6 bottom-6 w-20 hover:w-60 transition-all duration-500 bg-surface/40 backdrop-blur-xl border border-outline/20 rounded-[40px] flex flex-col items-center py-xl z-50 group overflow-hidden">
+      {/* Mobile Overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* SideNavBar Shell - Desktop: fixed sidebar, Mobile: slide-out drawer */}
+      <aside className={`fixed lg:left-6 lg:top-6 lg:bottom-6 lg:w-20 lg:hover:w-60 transition-all duration-500 bg-surface/40 backdrop-blur-xl border border-outline/20 rounded-[40px] flex flex-col items-center py-xl z-50 group overflow-hidden
+        ${mobileSidebarOpen ? 'left-6 top-6 bottom-6 w-60' : '-left-[300px] lg:left-6 lg:w-20'}
+      `}>
         <div className="mb-xl px-md w-full flex flex-col items-center">
           <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center group-hover:hidden transition-all">
             <span className="material-symbols-outlined text-primary">terminal</span>
@@ -118,10 +131,18 @@ export const FluidFluxLayout: React.FC = () => {
       </aside>
 
       {/* Top Header */}
-      <header className="fixed top-6 left-32 right-6 h-16 bg-surface/30 backdrop-blur-md border border-outline/10 rounded-full flex justify-between items-center px-lg z-40">
-        <div className="flex items-center gap-xl">
-          <span className="font-headline-md text-headline-md font-black text-on-surface tracking-tighter">CryptoCommand</span>
-          <div className="hidden md:flex items-center gap-lg font-label-tabular text-[12px] text-on-surface-variant">
+      <header className="fixed top-0 lg:top-6 left-0 right-0 lg:left-32 lg:right-6 h-14 lg:h-16 bg-surface/80 lg:bg-surface/30 backdrop-blur-md border-b lg:border border-outline/10 lg:rounded-full flex justify-between items-center px-md lg:px-lg z-40">
+        <div className="flex items-center gap-md lg:gap-xl">
+          {/* Hamburger Menu (mobile only) */}
+          <button
+            className="lg:hidden p-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant"
+            onClick={() => setMobileSidebarOpen(true)}
+          >
+            <span className="material-symbols-outlined text-lg">menu</span>
+          </button>
+
+          <span className="font-headline-md text-headline-sm lg:text-headline-md font-black text-on-surface tracking-tighter">CryptoCommand</span>
+          <div className="hidden lg:flex items-center gap-lg font-label-tabular text-[12px] text-on-surface-variant">
             <span className="flex items-center gap-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
               Global Mkt Cap: $2.4T
@@ -132,8 +153,8 @@ export const FluidFluxLayout: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-md">
-          <div className="flex items-center gap-xs bg-surface-container/30 border border-outline/10 rounded-full p-1 mr-xs md:flex hidden">
+        <div className="flex items-center gap-xs lg:gap-md">
+          <div className="hidden lg:flex items-center gap-xs bg-surface-container/30 border border-outline/10 rounded-full p-1 mr-xs">
             <button onClick={() => setTheme('standard')} className="px-3 py-1 rounded-full text-[10px] uppercase text-on-surface-variant hover:text-on-surface transition-all">Standard</button>
             <button onClick={() => setTheme('flux')} className="px-3 py-1 rounded-full text-[10px] uppercase bg-primary text-on-primary font-bold shadow transition-all">Flux</button>
             <button onClick={() => setTheme('monolith')} className="px-3 py-1 rounded-full text-[10px] uppercase text-on-surface-variant hover:text-on-surface transition-all">Mono</button>
@@ -141,16 +162,17 @@ export const FluidFluxLayout: React.FC = () => {
 
           <button
             onClick={() => handleOpenTrade(selectedCoin)}
-            className="px-6 py-2 bg-primary/20 border border-primary/40 text-primary font-bold rounded-full hover:bg-primary hover:text-on-primary transition-all text-sm uppercase tracking-wider cursor-pointer"
+            className="px-3 lg:px-6 py-1.5 lg:py-2 bg-primary/20 border border-primary/40 text-primary font-bold rounded-full hover:bg-primary hover:text-on-primary transition-all text-[10px] lg:text-sm uppercase tracking-wider cursor-pointer whitespace-nowrap"
           >
-            Execute Trade
+            <span className="hidden sm:inline">Execute Trade</span>
+            <span className="sm:hidden material-symbols-outlined text-base leading-none">add_circle</span>
           </button>
 
           <div className="flex items-center gap-sm text-on-surface-variant">
-            <button className="p-2 hover:bg-surface-variant rounded-full transition-all">
-              <span className="material-symbols-outlined text-lg">notifications</span>
+            <button className="p-1.5 lg:p-2 hover:bg-surface-variant rounded-full transition-all">
+              <span className="material-symbols-outlined text-base lg:text-lg">notifications</span>
             </button>
-            <div className="w-8 h-8 rounded-full border border-primary/30 overflow-hidden ml-2">
+            <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full border border-primary/30 overflow-hidden flex-shrink-0">
               <img alt="Trader Avatar" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNwdUQQKqtRbMgD7jdxhVQcErKTCNVtP5U1iFUg-NX3Tzg90ZA8-hagjMEE8xVTUecmsZGKGhrTyoG-9TvfMPCapgYZCppBRhxAoEWAvQtODEPYFpiWJMLolHKNXUyKojNKhMGz1UHyyJS-YtEogHXRN5hrnkQaxF6rg3HpuoXBR6bDjBvbBZxudxB2qkfs2NW8bHIZo1_kx0gQIaS7J6_jdOi-pfrtUmKKsuMFC64e5t9m027lLFQMKaRNuVFCgHP5VGK9wE3Jg" />
             </div>
           </div>
@@ -158,7 +180,7 @@ export const FluidFluxLayout: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="ml-32 pt-28 px-lg pb-36 min-h-screen">
+      <main className="ml-0 lg:ml-32 pt-14 lg:pt-28 px-sm lg:px-lg pb-20 lg:pb-36 min-h-screen">
         <div className="max-w-[1400px] mx-auto space-y-lg">
 
           {/* Live Ticker */}
@@ -212,18 +234,18 @@ export const FluidFluxLayout: React.FC = () => {
             </section>
 
             {/* --- 🧠 FULLY DYNAMIC INTELLIGENT SIGNAL HUB --- */}
-            <section id="signal-hub" className="col-span-12 flex flex-col md:flex-row items-center justify-center gap-xl py-lg">
+            <section id="signal-hub" className="col-span-12 flex flex-col lg:flex-row items-center justify-center gap-md lg:gap-xl py-lg">
 
               {/* Dynamic Best Buy Token Card */}
               <div
                 onClick={() => handleOpenTrade(liveSignals.buySignal.symbol)}
-                className="w-80 h-[360px] hub-circle glass-panel p-xl flex flex-col items-center justify-center text-center border-primary/30 relative group hover:scale-105 transition-transform duration-500 shadow-[0_0_40px_rgba(16,185,129,0.05)] cursor-pointer"
+                className="w-full max-w-xs lg:w-80 h-[320px] lg:h-[360px] hub-circle glass-panel p-lg lg:p-xl flex flex-col items-center justify-center text-center border-primary/30 relative group hover:scale-105 transition-transform duration-500 shadow-[0_0_40px_rgba(16,185,129,0.05)] cursor-pointer"
               >
                 <div className="absolute inset-0 rounded-full border-2 border-primary/10 animate-ping group-hover:opacity-40 opacity-0"></div>
                 <p className="text-label-caps text-primary uppercase mb-xs tracking-widest font-black text-[10px]">Top Buy Signal</p>
                 <h3 className="font-headline-md text-headline-sm text-on-surface mb-md font-bold uppercase">{liveSignals.buySignal.symbol}</h3>
                 <div className="flex flex-col items-center mb-lg">
-                  <span className="text-6xl font-display-lg text-primary leading-none font-black">{liveSignals.buySignal.confidence}<span className="text-xl font-medium">%</span></span>
+                  <span className="text-5xl lg:text-6xl font-display-lg text-primary leading-none font-black">{liveSignals.buySignal.confidence}<span className="text-xl font-medium">%</span></span>
                   <p className="text-label-caps text-on-surface-variant opacity-60 text-[9px] uppercase">Confidence</p>
                 </div>
                 <div className="flex gap-2 mb-xl">
@@ -233,7 +255,7 @@ export const FluidFluxLayout: React.FC = () => {
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleOpenTrade(liveSignals.buySignal.symbol); }}
-                  className="px-8 py-3 bg-primary text-on-primary font-bold rounded-full hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all text-xs uppercase cursor-pointer"
+                  className="px-6 lg:px-8 py-2 lg:py-3 bg-primary text-on-primary font-bold rounded-full hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all text-xs uppercase cursor-pointer"
                 >
                   OPEN LONG POSITION
                 </button>
@@ -242,12 +264,12 @@ export const FluidFluxLayout: React.FC = () => {
               {/* Dynamic Best Short Token Card */}
               <div
                 onClick={() => handleOpenTrade(liveSignals.shortSignal.symbol)}
-                className="w-80 h-[360px] hub-circle glass-panel p-xl flex flex-col items-center justify-center text-center border-secondary/30 relative group hover:scale-105 transition-transform duration-500 shadow-[0_0_40px_rgba(251,146,60,0.05)] cursor-pointer"
+                className="w-full max-w-xs lg:w-80 h-[320px] lg:h-[360px] hub-circle glass-panel p-lg lg:p-xl flex flex-col items-center justify-center text-center border-secondary/30 relative group hover:scale-105 transition-transform duration-500 shadow-[0_0_40px_rgba(251,146,60,0.05)] cursor-pointer"
               >
                 <p className="text-label-caps text-secondary uppercase mb-xs tracking-widest font-black text-[10px]">Top Short Signal</p>
                 <h3 className="font-headline-md text-headline-sm text-on-surface mb-md font-bold uppercase">{liveSignals.shortSignal.symbol}</h3>
                 <div className="flex flex-col items-center mb-lg">
-                  <span className="text-6xl font-display-lg text-secondary leading-none font-black">{liveSignals.shortSignal.confidence}<span className="text-xl font-medium">%</span></span>
+                  <span className="text-5xl lg:text-6xl font-display-lg text-secondary leading-none font-black">{liveSignals.shortSignal.confidence}<span className="text-xl font-medium">%</span></span>
                   <p className="text-label-caps text-on-surface-variant opacity-60 text-[9px] uppercase">Confidence</p>
                 </div>
                 <div className="flex gap-2 mb-xl">
@@ -257,7 +279,7 @@ export const FluidFluxLayout: React.FC = () => {
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleOpenTrade(liveSignals.shortSignal.symbol); }}
-                  className="px-8 py-3 bg-secondary text-on-secondary font-bold rounded-full hover:shadow-[0_0_20px_rgba(251,146,60,0.4)] transition-all text-xs uppercase cursor-pointer"
+                  className="px-6 lg:px-8 py-2 lg:py-3 bg-secondary text-on-secondary font-bold rounded-full hover:shadow-[0_0_20px_rgba(251,146,60,0.4)] transition-all text-xs uppercase cursor-pointer"
                 >
                   OPEN SHORT POSITION
                 </button>
@@ -324,18 +346,19 @@ export const FluidFluxLayout: React.FC = () => {
             </section>
 
             {/* Positions Ledger */}
-            <section id="portfolio-section" className="col-span-12 glass-panel rounded-[40px] overflow-hidden p-lg">
-              <div className="flex justify-between items-center mb-lg border-b border-outline/10 pb-sm">
-                <h3 className="font-display-lg text-headline-sm text-sm uppercase font-bold flex items-center gap-sm">
+            <section id="portfolio-section" className="col-span-12 glass-panel rounded-[24px] lg:rounded-[40px] overflow-hidden p-sm lg:p-lg">
+              <div className="flex flex-wrap justify-between items-center mb-lg border-b border-outline/10 pb-sm gap-sm">
+                <h3 className="font-display-lg text-headline-sm text-xs lg:text-sm uppercase font-bold flex items-center gap-sm">
                   <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-                  Positions Ledger
+                  <span className="hidden sm:inline">Positions Ledger</span>
+                  <span className="sm:hidden">Positions</span>
                 </h3>
                 <div className="flex gap-lg text-xs font-mono">
-                  <span className="text-primary font-bold">Mock Balance: ${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</span>
+                  <span className="text-primary font-bold">${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</span>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-sm lg:mx-0 px-sm lg:px-0">
                 {positions.length === 0 ? (
                   <div className="py-lg text-center text-on-surface-variant text-sm flex flex-col items-center gap-sm">
                     <span className="material-symbols-outlined text-4xl opacity-30">account_balance_wallet</span>
@@ -394,9 +417,20 @@ export const FluidFluxLayout: React.FC = () => {
         </div>
       </main>
 
+      {/* Mobile Market stats bar */}
+      <div className="lg:hidden flex flex-wrap gap-1.5 text-[9px] text-on-surface-variant font-label-tabular bg-surface-container-low/40 rounded-full border border-outline/10 px-sm py-1.5 mb-sm">
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          Mkt Cap: $2.4T
+        </span>
+        <span>
+          F&amp;G: <span className="text-primary font-bold">{fearGreedIndex}</span>
+        </span>
+      </div>
+
       {/* Footer Whale Tracker */}
-      <footer className="fixed bottom-6 left-32 right-6 h-20 bg-surface/80 backdrop-blur-2xl border border-outline/20 rounded-[30px] z-50 flex items-center overflow-hidden">
-        <div className="bg-primary/10 h-full px-lg flex flex-col justify-center border-r border-outline/10 min-w-[200px]">
+      <footer className="fixed bottom-0 lg:bottom-6 left-0 right-0 lg:left-32 lg:right-6 h-16 lg:h-20 bg-surface/80 backdrop-blur-2xl border-t lg:border border-outline/20 lg:rounded-[30px] z-50 flex items-center overflow-hidden">
+        <div className="hidden lg:flex bg-primary/10 h-full px-lg flex-col justify-center border-r border-outline/10 min-w-[200px]">
           <h3 className="font-label-caps text-primary text-xs flex items-center gap-2 font-bold">
             <span className="material-symbols-outlined text-sm">waves</span>
             Whale Tracker
@@ -408,17 +442,37 @@ export const FluidFluxLayout: React.FC = () => {
             {whaleAlerts.map((whale) => (
               <div
                 key={whale.id}
-                className="flex items-center gap-md bg-surface-container-high/40 px-lg py-3 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all cursor-pointer"
+                className="flex items-center gap-md bg-surface-container-high/40 px-lg py-2 lg:py-3 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined text-primary text-sm">water_drop</span>
-                <span className="font-label-tabular text-sm font-bold text-primary">${whale.amount} {whale.token}</span>
-                <span className="text-[10px] text-on-surface-variant whitespace-nowrap">{whale.from} → {whale.to}</span>
+                <span className="font-label-tabular text-xs lg:text-sm font-bold text-primary whitespace-nowrap">${whale.amount} {whale.token}</span>
+                <span className="hidden sm:inline text-[10px] text-on-surface-variant whitespace-nowrap">{whale.from} → {whale.to}</span>
                 <span className="text-[9px] text-primary/60 font-bold">{whale.timeAgo}</span>
               </div>
             ))}
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="lg:hidden fixed bottom-16 left-0 right-0 bg-surface-container-low/95 backdrop-blur-md border-t border-outline/10 z-40 flex justify-around items-center h-12">
+        <a href="#command-center" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors py-1 px-2">
+          <span className="material-symbols-outlined text-lg">dashboard</span>
+          <span className="text-[8px] font-bold uppercase">Chart</span>
+        </a>
+        <a href="#signal-hub" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors py-1 px-2">
+          <span className="material-symbols-outlined text-lg">insights</span>
+          <span className="text-[8px] font-bold uppercase">Signals</span>
+        </a>
+        <a href="#pulse-sentiment" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors py-1 px-2">
+          <span className="material-symbols-outlined text-lg">analytics</span>
+          <span className="text-[8px] font-bold uppercase">Pulse</span>
+        </a>
+        <a href="#portfolio-section" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors py-1 px-2">
+          <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+          <span className="text-[8px] font-bold uppercase">Portfolio</span>
+        </a>
+      </nav>
 
     </div>
   );

@@ -14,7 +14,8 @@ interface AssetIntelligence {
   coin: string;
   action: 'BUY' | 'SELL' | 'AVOID' | 'HOLD';
   confidence: number;
-  trend: 'Bullish' | 'Bearish';
+  // FIX #1: Server se 4 trend values aati hain — sirf 2 nahi
+  trend: 'Strongly Bullish' | 'Bullish' | 'Bearish' | 'Strongly Bearish';
   entry: number;
   stop_loss: number;
   take_profit: number[];
@@ -32,6 +33,10 @@ interface BackendSignals {
   shortSignal: LiveSignal | null;
   allSignals: AssetIntelligence[];
   lastSyncTimestamp: string | null;
+  // FIX #2: Backend yeh fields bhi return karta hai — interface mein missing tha
+  engineStatus?: 'initializing' | 'ok' | 'degraded' | 'error';
+  scanCount?: number;
+  errors?: Record<string, string>;
 }
 
 export const StandardLayout: React.FC = () => {
@@ -53,24 +58,28 @@ export const StandardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // --- LIVE MARKET INTELLIGENCE STATE ---
-  // Default fallbacks jo backend down hone par dikhenge
+  // FIX #3: Initial state mein buySignal/shortSignal null rakho
+  // Pehle price: 0 tha — "$0" display hota tha UI mein jab tak data na aaye
+  // Ab null hai — UI mein "N/A" aur "0%" dikhega properly
   const [liveSignals, setLiveSignals] = useState<BackendSignals>({
     marketTrend: 'NEUTRAL',
     recommendedStance: 'PRESERVE_CAPITAL',
     strongestSectors: [],
     weakestSectors: [],
-    buySignal: { symbol: 'BTC', price: 0, confidence: 0, reason: 'RSI OVERSOLD', type: 'LONG' },
-    shortSignal: { symbol: 'SOL', price: 0, confidence: 0, reason: 'BEARISH DIVERGENCE', type: 'SHORT' },
+    buySignal: null,
+    shortSignal: null,
     allSignals: [],
-    lastSyncTimestamp: null
+    lastSyncTimestamp: null,
+    engineStatus: 'initializing',
   });
 
   // Real-time API integration
   useEffect(() => {
     const fetchLiveSignals = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL;
-        // const response = await fetch(`http://localhost:5000/api/signals`);
+        // FIX #4: Hardcoded localhost URL remove kiya — VITE_API_URL use karo
+        // Pehle: fetch('http://localhost:5000/api/signals') — production mein fail hota
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const response = await fetch(`${API_URL}/api/signals`);
         if (response.ok) {
           const data: BackendSignals = await response.json();
@@ -81,9 +90,11 @@ export const StandardLayout: React.FC = () => {
       }
     };
 
-    // Har 10 seconds baad data pool hoga
+    // FIX #5: Polling interval backend ke saath match karo
+    // Pehle: 10 seconds — backend 30s mein data update karta hai, 3x unnecessary calls hoti thi
+    // Ab: 30 seconds — backend refresh se aligned
     fetchLiveSignals();
-    const interval = setInterval(fetchLiveSignals, 10000);
+    const interval = setInterval(fetchLiveSignals, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -214,7 +225,7 @@ export const StandardLayout: React.FC = () => {
               Fear &amp; Greed: <span className="text-primary font-bold">{fearGreedIndex} ({fearGreedIndex >= 75 ? 'Extreme Greed' : fearGreedIndex >= 55 ? 'Greed' : 'Neutral'})</span>
             </span>
             <span className="flex items-center gap-xs">
-              Mkt Trend: <span className={`font-bold ${liveSignals.marketTrend === 'BULLISH' ? 'text-primary' : liveSignals.marketTrend === 'BEARISH' ? 'text-error' : 'text-on-surface-variant'}`}>{liveSignals.marketTrend}</span>
+              Mkt Trend: <span className={`font-bold ${liveSignals.marketTrend === 'BULLISH' ? 'text-primary' : liveSignals.marketTrend === 'BEARISH' ? 'text-error' : liveSignals.marketTrend === 'SIDEWAYS' ? 'text-amber-500' : 'text-on-surface-variant'}`}>{liveSignals.marketTrend}</span>
             </span>
             <span className="flex items-center gap-xs hidden xl:inline-flex">
               Stance: <span className="font-mono text-[10px] bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20 text-primary font-bold">{liveSignals.recommendedStance}</span>
@@ -232,9 +243,9 @@ export const StandardLayout: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-xs lg:gap-sm text-on-surface-variant">
-            <button className="p-base hover:text-primary transition-opacity"><span className="material-symbols-outlined text-xl">notifications</span></button>
-            <button className="p-base hover:text-primary transition-opacity hidden sm:block"><span className="material-symbols-outlined text-xl">account_balance</span></button>
-            <button className="p-base hover:text-primary transition-opacity hidden sm:block"><span className="material-symbols-outlined text-xl">grid_view</span></button>
+            <button className="p-1.5 hover:text-primary transition-opacity"><span className="material-symbols-outlined text-xl">notifications</span></button>
+            <button className="p-1.5 hover:text-primary transition-opacity hidden sm:block"><span className="material-symbols-outlined text-xl">account_balance</span></button>
+            <button className="p-1.5 hover:text-primary transition-opacity hidden sm:block"><span className="material-symbols-outlined text-xl">grid_view</span></button>
           </div>
 
           <div className="w-8 h-8 rounded-full bg-surface-container-highest border border-outline overflow-hidden flex-shrink-0">
@@ -278,7 +289,7 @@ export const StandardLayout: React.FC = () => {
             F&amp;G: <span className="text-primary font-bold">{fearGreedIndex}</span>
           </span>
           <span>
-            Trend: <span className={`font-bold ${liveSignals.marketTrend === 'BULLISH' ? 'text-primary' : liveSignals.marketTrend === 'BEARISH' ? 'text-error' : 'text-on-surface-variant'}`}>{liveSignals.marketTrend}</span>
+            Trend: <span className={`font-bold ${liveSignals.marketTrend === 'BULLISH' ? 'text-primary' : liveSignals.marketTrend === 'BEARISH' ? 'text-error' : liveSignals.marketTrend === 'SIDEWAYS' ? 'text-amber-500' : 'text-on-surface-variant'}`}>{liveSignals.marketTrend}</span>
           </span>
           <span className="font-mono text-[9px] bg-primary/10 px-1 py-0.5 rounded border border-primary/20 text-primary font-bold">{liveSignals.recommendedStance}</span>
         </div>
@@ -376,7 +387,7 @@ export const StandardLayout: React.FC = () => {
 
         {/* Whale Alert Tracker */}
         <div className="grid grid-cols-12 gap-sm lg:gap-grid-gutter items-start">
-          <section id="whale-tracker" className="col-span-12 lg:col-span-5 glass-panel rounded-xl flex flex-col h-[320px] lg:h-[380px] overflow-hidden">
+          <section id="whale-tracker" className="col-span-12 lg:col-span-5 glass-panel rounded-xl flex flex-col min-h-[280px] lg:h-[380px] overflow-hidden">
             <div className="p-sm lg:p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest/30">
               <h3 className="font-headline-sm text-sm uppercase font-bold flex items-center gap-sm">
                 <span className="material-symbols-outlined text-tertiary" style={{ fontVariationSettings: "'FILL' 1" }}>monitoring</span>
@@ -412,7 +423,7 @@ export const StandardLayout: React.FC = () => {
           {/* Market Pulse Widgets */}
           <section id="market-pulse" className="col-span-12 lg:col-span-7 grid grid-cols-2 gap-sm lg:gap-grid-gutter">
             {/* Trending Coins */}
-            <div className="glass-panel p-sm lg:p-md rounded-xl col-span-2 sm:col-span-1 flex flex-col h-[320px] lg:h-[380px]">
+            <div className="glass-panel p-sm lg:p-md rounded-xl col-span-2 sm:col-span-1 flex flex-col min-h-[280px] lg:h-[380px]">
               <h4 className="text-label-caps text-on-surface-variant uppercase font-bold text-[10px] mb-sm lg:mb-md tracking-wider border-b border-outline-variant pb-sm">Trending Momentum</h4>
               <div className="space-y-xs lg:space-y-md flex-1 overflow-y-auto pr-xs">
                 {Object.values(coins).slice(4).map((c) => {
@@ -449,7 +460,7 @@ export const StandardLayout: React.FC = () => {
             </div>
 
             {/* Fear & Greed Gauge */}
-            <div className="glass-panel p-sm lg:p-md rounded-xl col-span-2 sm:col-span-1 flex flex-col items-center justify-center text-center h-[320px] lg:h-[380px]">
+            <div className="glass-panel p-sm lg:p-md rounded-xl col-span-2 sm:col-span-1 flex flex-col items-center justify-center text-center min-h-[280px] lg:h-[380px]">
               <h4 className="text-label-caps text-on-surface-variant uppercase font-bold text-[10px] mb-sm tracking-wider self-start">Sentiment Index</h4>
               <div className="relative w-28 h-28 lg:w-36 lg:h-36 flex items-center justify-center mt-2">
                 <svg className="w-full h-full transform -rotate-90">
@@ -515,7 +526,8 @@ export const StandardLayout: React.FC = () => {
                             ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold'
                             : 'bg-surface-container-high text-on-surface border border-outline-variant';
 
-                    const trendColors = sig.trend === 'Bullish' ? 'text-primary font-bold' : 'text-error font-bold';
+                    // FIX #6: Strongly Bullish/Bearish bhi handle karo — pehle sirf Bullish/Bearish tha
+                    const trendColors = sig.trend.includes('Bullish') ? 'text-primary font-bold' : 'text-error font-bold';
 
                     return (
                       <tr key={sig.coin} className="border-b border-outline-variant/30 hover:bg-surface-container-high/30 transition-colors">
