@@ -327,58 +327,88 @@ export const StandardLayout: React.FC = () => {
 
               {/* Dynamic Top Buy Signal Card */}
               <div className="p-sm lg:p-lg bg-surface-container rounded-xl border border-outline-variant relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
-                <div className="flex justify-between items-start mb-sm lg:mb-md">
-                  <div>
-                    <p className="text-label-caps text-primary uppercase mb-xs tracking-wider text-[10px] font-black">Top Buy Signal</p>
-                    <h3 className="font-headline-md text-headline-sm text-on-surface font-black uppercase text-sm lg:text-base">{liveSignals.buySignal?.symbol || 'N/A'} <br /> <span className="text-primary font-bold text-lg lg:text-2xl">${liveSignals.buySignal?.price.toLocaleString() || '0.00'}</span></h3>
+                {liveSignals.buySignal ? (
+                  <>
+                    <div className="flex justify-between items-start mb-sm lg:mb-md">
+                      <div>
+                        <p className="text-label-caps text-primary uppercase mb-xs tracking-wider text-[10px] font-black">Top Buy Signal</p>
+                        <h3 className="font-headline-md text-headline-sm text-on-surface font-black uppercase text-sm lg:text-base">
+                          {liveSignals.buySignal.symbol} <br />
+                          <span className="text-primary font-bold text-lg lg:text-2xl">${liveSignals.buySignal.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </h3>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-display-lg text-primary text-2xl lg:text-4xl leading-none font-bold">{liveSignals.buySignal.confidence}<span className="text-body-md font-medium">%</span></span>
+                        <p className="text-label-caps opacity-60 text-[10px]">Confidence</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-xs mb-sm lg:mb-lg">
+                      <span className="px-sm py-1 rounded bg-primary/10 border border-primary/20 text-[10px] text-primary font-semibold uppercase">
+                        {liveSignals.buySignal.reason}
+                      </span>
+                      <span className="px-sm py-1 rounded bg-primary/10 border border-primary/20 text-[10px] text-primary font-semibold uppercase">VOLUME CONFIRMED</span>
+                    </div>
+                    <button
+                      onClick={() => handleOpenTrade(liveSignals.buySignal!.symbol)}
+                      className="w-full py-xs lg:py-sm bg-primary text-on-primary font-bold rounded hover:brightness-111 active:scale-[0.98] transition-all text-xs uppercase cursor-pointer"
+                    >OPEN LONG POSITION</button>
+                  </>
+                ) : (
+                  // No buy signal — loading/scanning state
+                  <div className="flex flex-col items-center justify-center py-lg gap-sm text-center">
+                    <span className="material-symbols-outlined text-primary/40 text-4xl animate-pulse">search</span>
+                    <p className="text-label-caps text-primary uppercase text-[10px] font-black">Top Buy Signal</p>
+                    <p className="text-on-surface-variant text-xs">
+                      {liveSignals.engineStatus === 'initializing' ? 'Engine scanning markets...' : 'No strong buy signal detected'}
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant/60">
+                      {liveSignals.engineStatus === 'initializing' ? 'First scan in progress' : 'Market in neutral zone'}
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <span className="font-display-lg text-primary text-2xl lg:text-4xl leading-none font-bold">{liveSignals.buySignal?.confidence || 0}<span className="text-body-md font-medium">%</span></span>
-                    <p className="text-label-caps opacity-60 text-[10px]">Confidence</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-xs mb-sm lg:mb-lg">
-                  <span className="px-sm py-1 rounded bg-primary/10 border border-primary/20 text-[10px] text-primary font-semibold uppercase">
-                    {liveSignals.buySignal?.reason || 'ANALYZING MARKET'}
-                  </span>
-                  <span className="px-sm py-1 rounded bg-primary/10 border border-primary/20 text-[10px] text-primary font-semibold uppercase">
-                    VOLUME CONFIRMED
-                  </span>
-                </div>
-                <button
-                  onClick={() => liveSignals.buySignal && handleOpenTrade(liveSignals.buySignal.symbol)}
-                  className="w-full py-xs lg:py-sm bg-primary text-on-primary font-bold rounded hover:brightness-111 active:scale-[0.98] transition-all text-xs uppercase cursor-pointer"
-                >
-                  OPEN LONG POSITION
-                </button>
+                )}
               </div>
 
               {/* Dynamic Top Short Signal Card */}
               <div className="p-sm lg:p-lg bg-surface-container rounded-xl border border-outline-variant relative overflow-hidden group hover:border-error/40 transition-all duration-300">
-                <div className="flex justify-between items-start mb-sm lg:mb-md">
-                  <div>
-                    <p className="text-label-caps text-error uppercase mb-xs tracking-wider text-[10px] font-black">Top Short Signal</p>
-                    <h3 className="font-headline-md text-headline-sm text-on-surface font-black uppercase text-sm lg:text-base">{liveSignals.shortSignal?.symbol || 'N/A'}<br /> <span className="font-bold text-lg lg:text-2xl">${liveSignals.shortSignal?.price.toLocaleString() || '0.00'}</span></h3>
+                {liveSignals.shortSignal ? (
+                  <>
+                    <div className="flex justify-between items-start mb-sm lg:mb-md">
+                      <div>
+                        <p className="text-label-caps text-error uppercase mb-xs tracking-wider text-[10px] font-black">Top Short Signal</p>
+                        <h3 className="font-headline-md text-headline-sm text-on-surface font-black uppercase text-sm lg:text-base">
+                          {liveSignals.shortSignal.symbol}<br />
+                          <span className="font-bold text-lg lg:text-2xl">${liveSignals.shortSignal.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </h3>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-display-lg text-error text-2xl lg:text-4xl leading-none font-bold">{liveSignals.shortSignal.confidence}<span className="text-body-md font-medium">%</span></span>
+                        <p className="text-label-caps opacity-60 text-[10px]">Confidence</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-xs mb-sm lg:mb-lg">
+                      <span className="px-sm py-1 rounded bg-error/10 border border-error/20 text-[10px] text-error font-semibold uppercase">
+                        {liveSignals.shortSignal.reason}
+                      </span>
+                      <span className="px-sm py-1 rounded bg-error/10 border border-error/20 text-[10px] text-error font-semibold uppercase">MOMENTUM WEAK</span>
+                    </div>
+                    <button
+                      onClick={() => handleOpenTrade(liveSignals.shortSignal!.symbol)}
+                      className="w-full py-xs lg:py-sm bg-error text-on-error font-bold rounded hover:brightness-111 active:scale-[0.98] transition-all text-xs uppercase cursor-pointer"
+                    >OPEN SHORT POSITION</button>
+                  </>
+                ) : (
+                  // No short signal — loading/scanning state
+                  <div className="flex flex-col items-center justify-center py-lg gap-sm text-center">
+                    <span className="material-symbols-outlined text-error/40 text-4xl animate-pulse">search</span>
+                    <p className="text-label-caps text-error uppercase text-[10px] font-black">Top Short Signal</p>
+                    <p className="text-on-surface-variant text-xs">
+                      {liveSignals.engineStatus === 'initializing' ? 'Engine scanning markets...' : 'No strong short signal detected'}
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant/60">
+                      {liveSignals.engineStatus === 'initializing' ? 'First scan in progress' : 'Market in neutral zone'}
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <span className="font-display-lg text-error text-2xl lg:text-4xl leading-none font-bold">{liveSignals.shortSignal?.confidence || 0}<span className="text-body-md font-medium">%</span></span>
-                    <p className="text-label-caps opacity-60 text-[10px]">Confidence</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-xs mb-sm lg:mb-lg">
-                  <span className="px-sm py-1 rounded bg-error/10 border border-error/20 text-[10px] text-error font-semibold uppercase">
-                    {liveSignals.shortSignal?.reason || 'ANALYZING MARKET'}
-                  </span>
-                  <span className="px-sm py-1 rounded bg-error/10 border border-error/20 text-[10px] text-error font-semibold uppercase">
-                    MOMENTUM WEAK
-                  </span>
-                </div>
-                <button
-                  onClick={() => liveSignals.shortSignal && handleOpenTrade(liveSignals.shortSignal.symbol)}
-                  className="w-full py-xs lg:py-sm bg-error text-on-error font-bold rounded hover:brightness-111 active:scale-[0.98] transition-all text-xs uppercase cursor-pointer"
-                >
-                  OPEN SHORT POSITION
-                </button>
+                )}
               </div>
 
             </div>
