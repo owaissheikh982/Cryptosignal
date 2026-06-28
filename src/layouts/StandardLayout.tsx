@@ -72,18 +72,24 @@ export const StandardLayout: React.FC = () => {
     lastSyncTimestamp: null,
     engineStatus: 'initializing',
   });
-
+  // const [selectedTimeframe, setSelectedTimeframe] = useState<string>('1h');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>(() => {
+    // Page load hote hi browser memory check karo
+    return localStorage.getItem('user_timeframe') || '1h';
+  });
   // Real-time API integration
   useEffect(() => {
     const fetchLiveSignals = async () => {
       try {
-        // FIX #4: Hardcoded localhost URL remove kiya — VITE_API_URL use karo
-        // Pehle: fetch('http://localhost:5000/api/signals') — production mein fail hota
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const response = await fetch(`${API_URL}/api/signals`);
+        const response = await fetch(`${API_URL}/api/signals?timeframe=${selectedTimeframe}`);
+
         if (response.ok) {
           const data: BackendSignals = await response.json();
           setLiveSignals(data);
+
+          // 🟢 Value ko browser memory mein permanent save karlein
+          localStorage.setItem('user_timeframe', selectedTimeframe);
         }
       } catch (error) {
         console.error("Market Intelligence Engine offline:", error);
@@ -97,7 +103,7 @@ export const StandardLayout: React.FC = () => {
     const interval = setInterval(fetchLiveSignals, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTimeframe]);
 
   const handleSelectCoin = (symbol: string) => {
     setSelectedCoin(symbol);
@@ -302,7 +308,7 @@ export const StandardLayout: React.FC = () => {
                 <span className="font-headline-sm text-on-surface text-sm lg:text-lg uppercase font-bold tracking-wider">{selectedCoin} / USDT</span>
                 <span className="bg-primary/10 text-primary text-[10px] px-sm py-0.5 rounded border border-primary/20 font-bold animate-pulse">LIVE FEED</span>
               </div>
-              <div className="relative">
+              <div className="relative space-x-2">
                 <select
                   value={selectedCoin}
                   onChange={(e) => handleSelectCoin(e.target.value)}
@@ -311,6 +317,16 @@ export const StandardLayout: React.FC = () => {
                   {Object.keys(coins).map((sym) => (
                     <option key={sym} value={sym}>{sym} - {coins[sym].name}</option>
                   ))}
+                </select>
+                <select
+                  value={selectedTimeframe}
+                  onChange={(e) => setSelectedTimeframe(e.target.value)} // 🟢 Dropdown change hote hi variable update hoga
+                  className="bg-surface-container-lowest border border-outline-variant rounded pl-sm lg:pl-md pr-sm lg:pr-lg py-xs text-xs font-semibold focus:outline-none focus:border-primary transition-all text-on-surface select-none max-w-[120px] lg:max-w-none sm:w-60"
+                >
+                  <option value="5m">5 Minute (Ultra Scalp)</option>
+                  <option value="15m">15 Minute (Futures Scalp)</option>
+                  <option value="30m">30 Minute (Quick Trade)</option>
+                  <option value="1h">1 Hour (Standard Swing)</option>
                 </select>
               </div>
             </div>
