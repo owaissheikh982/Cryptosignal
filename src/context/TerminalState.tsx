@@ -100,10 +100,14 @@ interface TerminalContextProps {
   showTradeModal: boolean;
   setShowTradeModal: (show: boolean) => void;
   priceSource: PriceSource;
-  // 🟢 Naye Dynamic Parameters exposed to Layouts
   selectedTimeframe: string;
   setSelectedTimeframe: (tf: string) => void;
   intelState: BackendIntelState | null;
+  // ── 🟢 NEW PIPELINES EXPOSED TO CONTEXT LAYERS ──
+  dynamicIntelState: BackendIntelState | null;
+  isAuthenticated: boolean;
+  setIsAuthenticated: (auth: boolean) => void;
+  logout: () => void;
 }
 
 const TerminalContext = createContext<TerminalContextProps | undefined>(undefined);
@@ -154,13 +158,19 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const fearGreedIndex = 68;
   const liveFetchFailed = useRef(false);
 
-  // ── 🟢 NEW: Persistent Dropdown Staging & Intelligence State ──
+  // ── 🟢 AUTH STATES HYDRATION MATRIX ──
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('trader_auth') === 'true';
+  });
+
+  // ── 🟢 DYNAMIC SCREENER ARCHITECTURE NODES ──
   const [intelState, setIntelState] = useState<BackendIntelState | null>(null);
+  const [dynamicIntelState, setDynamicIntelState] = useState<BackendIntelState | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>(() => {
     return localStorage.getItem('user_timeframe') || '1h';
   });
 
-  // ── 📡 REAL-TIME LIVE RAILWAY SYNC ENGINE ──
+  // ── 📡 ROUTE 1: WATCHLIST SYNC INTERFACE ENGINE ──
   const fetchLiveSignals = useCallback(async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -171,14 +181,13 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setIntelState(data);
         localStorage.setItem('user_timeframe', selectedTimeframe);
 
-        // Map live signals right into the active token tracking registry
         setCoins((prevCoins) => {
           const nextCoins = { ...prevCoins };
           data.allSignals.forEach((sig) => {
             if (nextCoins[sig.coin]) {
               nextCoins[sig.coin] = {
                 ...nextCoins[sig.coin],
-                signalContext: sig // dynamic signal injector node
+                signalContext: sig
               };
             }
           });
@@ -190,12 +199,61 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [selectedTimeframe]);
 
-  // Hook into network polling intervals based on user selection mutations
+  // ── 🧠 ROUTE 2: DYNAMIC FLUID FULL-MARKET VOL-SCREENER PIPELINE ──
+  const fetchDynamicSignals = useCallback(async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/signals/dynamic?timeframe=${selectedTimeframe}`);
+      
+      if (response.ok) {
+        const data: BackendIntelState = await response.json();
+        setDynamicIntelState(data);
+
+        // On-the-fly volatile coin registry injector node
+        setCoins((prevCoins) => {
+          const nextCoins = { ...prevCoins };
+          data.allSignals.forEach((sig) => {
+            if (!nextCoins[sig.coin]) {
+              // Automatically spawn new transient datasets safely to prevent UI mesh failure
+              nextCoins[sig.coin] = {
+                symbol: sig.coin,
+                name: `${sig.coin} Scanned`,
+                price: sig.entry,
+                change24h: 0,
+                history: [sig.entry, sig.entry],
+                signalContext: sig
+              };
+            } else {
+              nextCoins[sig.coin] = {
+                ...nextCoins[sig.coin],
+                signalContext: sig
+              };
+            }
+          });
+          return nextCoins;
+        });
+      }
+    } catch (dynamicErr) {
+      console.error("Dynamic Volume Screener pipeline offline:", dynamicErr);
+    }
+  }, [selectedTimeframe]);
+
+  // Combined real-time multi-threading interval executor
   useEffect(() => {
     fetchLiveSignals();
-    const interval = setInterval(fetchLiveSignals, 30000); // Polling sync loop every 30s
+    fetchDynamicSignals();
+    const interval = setInterval(() => {
+      fetchLiveSignals();
+      fetchDynamicSignals();
+    }, 30000); 
     return () => clearInterval(interval);
-  }, [fetchLiveSignals]);
+  }, [fetchLiveSignals, fetchDynamicSignals]);
+
+  // ── 🟢 LOGOUT PIPELINE CLEANER NODE ──
+  const logout = useCallback(() => {
+    localStorage.removeItem('trader_auth');
+    setIsAuthenticated(false);
+  }, []);
 
   // --- Real-time CoinGecko price fetching (fallback tracking node) ---
   const fetchAndUpdatePrices = useCallback(async () => {
@@ -214,6 +272,7 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCoins((prevCoins) => {
       const nextCoins = { ...prevCoins };
       for (const [symbol, geckoId] of Object.entries(COINGECKO_IDS)) {
+        if (!nextCoins[symbol]) continue; // Guard node for dynamic assets integration
         const priceData = data[geckoId];
         if (!priceData) continue;
 
@@ -400,10 +459,14 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         showTradeModal,
         setShowTradeModal,
         priceSource,
-        // 🟢 Exposed New Control Pipelines
         selectedTimeframe,
         setSelectedTimeframe,
         intelState,
+        // ── 🟢 PIPELINES DATA PACKETS BOUND AT CONTEXT VALUE ──
+        dynamicIntelState,
+        isAuthenticated,
+        setIsAuthenticated,
+        logout
       }}
     >
       {children}
