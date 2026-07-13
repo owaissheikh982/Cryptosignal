@@ -119,6 +119,7 @@ export const StandardLayout: React.FC = () => {
     selectedTimeframe,
     setSelectedTimeframe,
     intelState,
+    logout,
   } = useTerminal();
 
   // Mobile sidebar state
@@ -198,6 +199,14 @@ export const StandardLayout: React.FC = () => {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface-container-high px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant transition-all hover:border-error/40 hover:text-error"
+          >
+            <span className="material-symbols-outlined text-sm">logout</span>
+            Logout
+          </button>
 
           {/* Balance badge */}
           <div className="flex items-center gap-1.5 bg-surface-container-high border border-outline-variant px-3 py-1.5 rounded-xl">

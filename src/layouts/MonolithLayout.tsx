@@ -14,6 +14,7 @@ export const MonolithLayout: React.FC = () => {
     accountBalance,
     fearGreedIndex,
     setShowTradeModal,
+    logout,
   } = useTerminal();
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -77,6 +78,13 @@ export const MonolithLayout: React.FC = () => {
           >
             <span className="hidden sm:inline">Execute Trade</span>
             <span className="sm:hidden material-symbols-outlined text-base leading-none">add_circle</span>
+          </button>
+
+          <button
+            onClick={() => logout()}
+            className="border-2 border-white bg-background px-sm py-1.5 text-[10px] font-black uppercase text-on-surface transition-colors hover:bg-white hover:text-black"
+          >
+            Logout
           </button>
           
           <div className="w-8 h-8 lg:w-10 lg:h-10 border-2 border-white overflow-hidden flex-shrink-0">

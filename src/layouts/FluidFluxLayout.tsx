@@ -27,6 +27,7 @@ export const FluidFluxLayout: React.FC = () => {
     accountBalance,
     fearGreedIndex,
     setShowTradeModal,
+    logout,
   } = useTerminal();
 
   // Mobile sidebar state
@@ -42,7 +43,8 @@ export const FluidFluxLayout: React.FC = () => {
   useEffect(() => {
     const fetchLiveSignals = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/signals');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/signals`);
         if (response.ok) {
           const data: BackendSignals = await response.json();
           setLiveSignals(data);
@@ -166,6 +168,13 @@ export const FluidFluxLayout: React.FC = () => {
           >
             <span className="hidden sm:inline">Execute Trade</span>
             <span className="sm:hidden material-symbols-outlined text-base leading-none">add_circle</span>
+          </button>
+
+          <button
+            onClick={() => logout()}
+            className="rounded-full border border-outline/20 bg-surface-container/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant transition-all hover:border-error/40 hover:text-error"
+          >
+            Logout
           </button>
 
           <div className="flex items-center gap-sm text-on-surface-variant">

@@ -250,10 +250,25 @@ export const TerminalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [fetchLiveSignals, fetchDynamicSignals]);
 
   // ── 🟢 LOGOUT PIPELINE CLEANER NODE ──
-  const logout = useCallback(() => {
-    localStorage.removeItem('trader_auth');
+  const logout = useCallback(async () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // ignore network errors — we'll still clear local state
+    }
+
+    // Clear client-side traces of authentication and update state
+    try {
+      localStorage.removeItem('trader_auth');
+    } catch {
+      /* ignore */
+    }
     setIsAuthenticated(false);
-  }, []);
+  }, [setIsAuthenticated]);
 
   // --- Real-time CoinGecko price fetching (fallback tracking node) ---
   const fetchAndUpdatePrices = useCallback(async () => {

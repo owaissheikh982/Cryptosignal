@@ -1,8 +1,36 @@
-# React + TypeScript + Vite
+# CryptoWeb
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Secure Static Authentication
 
-Currently, two official plugins are available:
+This project now includes a server-side static authentication flow for the existing terminal UI.
+
+### Environment variables
+Create a local .env file from .env.example and set the following values:
+
+```env
+ADMIN_EMAIL=admin@quanttrader.local
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change-me-strongly
+AUTH_SECRET=change-this-to-a-long-random-string
+AUTH_SESSION_TTL_MS=28800000
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+### How it works
+- The frontend sends login requests to the Express backend.
+- The backend validates credentials server-side and issues an HttpOnly session cookie.
+- The main app checks the session on startup and protects private routes by showing the login screen when unauthenticated.
+- Logout clears the session cookie and returns the user to the login form.
+
+### Running locally
+1. Copy .env.example to .env and update the values.
+2. Start the backend: `node backend/server.js`
+3. Start the frontend: `npm run dev`
+
+### Security notes
+- Credentials are stored only in backend environment variables.
+- No secrets are exposed to client-side JavaScript.
+- The login endpoint returns generic errors and rate-limits repeated attempts.
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
